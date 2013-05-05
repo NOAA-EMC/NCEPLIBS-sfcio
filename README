@@ -95,7 +95,7 @@ To start the library build for a particular configuration, simply type
 3. Testing the library
 ----------------------
 
-We don't have any package-level tests for w3emc yet. Sorry! They're coming...
+We don't have any package-level tests for sfcio yet. Sorry! They're coming...
 
 
 
