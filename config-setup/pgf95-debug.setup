@@ -1,0 +1,12 @@
+export FC="pgf95"
+export FCFLAGS=" \
+ -g \
+ -Kieee \
+ -Ktrap=ovf,divz \
+ -Mbounds \
+ -Mchkstk \
+ -Mdaz \
+ -Mdclchk \
+ -Minform,inform \
+ -Mnosave \
+ -Mref_externals"

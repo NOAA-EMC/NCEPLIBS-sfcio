@@ -1,0 +1,10 @@
+export FC="xlf2003"
+export FCFLAGS=" \
+ -qarch=auto \
+ -qcheck \
+ -qdbg \
+ -qfree \
+ -qflttrap=ov:zero:en \
+ -qinitauto \
+ -qmaxmem=-1 \
+ -qnosave"

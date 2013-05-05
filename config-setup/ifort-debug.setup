@@ -1,0 +1,11 @@
+export FC="ifort"
+export FCFLAGS="-g \
+ -O0 \
+ -xHOST \
+ -traceback \
+ -check bounds \
+ -fp-stack-check \
+ -mieee-fp \
+ -free \
+ -convert big_endian \
+ -assume byterecl"

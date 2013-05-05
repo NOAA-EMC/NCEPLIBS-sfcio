@@ -1,0 +1,8 @@
+export FC="xlf2003"
+export FCFLAGS=" \
+ -qarch=auto \
+ -qdbg \
+ -qfree \
+ -qnosave \
+ -qoptimize=3 \
+ -qstrict"

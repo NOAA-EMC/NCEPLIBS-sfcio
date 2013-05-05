@@ -1,0 +1,11 @@
+export FC="gfortran"
+export FCFLAGS=" \
+ -O3 \
+ -fconvert=big-endian \
+ -ffree-form \
+ -fimplicit-none \
+ -fno-second-underscore \
+ -frecord-marker=4 \
+ -funroll-loops \
+ -ggdb \
+ -Wall"

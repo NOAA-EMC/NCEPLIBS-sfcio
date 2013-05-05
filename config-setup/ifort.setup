@@ -1,0 +1,2 @@
+export FC="ifort"
+export FCFLAGS="-O2 -g -xHOST -traceback -free -convert big_endian -assume byterecl"
