@@ -1,4 +1,0 @@
-export FC="pgf95"
-export FCFLAGS=" \
- -g \
- -fast"
