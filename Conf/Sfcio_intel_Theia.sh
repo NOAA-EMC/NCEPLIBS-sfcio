@@ -1,5 +1,5 @@
 # *** for Theia (intel) ***
- WORKDIR=/scratch3/NCEPDEV/nceplibs/Dexin.Zhang
+ WORKDIR=/scratch3/NCEPDEV/nwprod/IPS
  MODULEPATH=/apps/lmod/lmod/modulefiles/Core
  module use -a $WORKDIR/modulefiles/core_third
  module load EnvVars/1.0.2

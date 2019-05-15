@@ -31,6 +31,11 @@
    [[ ${3,,} == installonly ]] && { inst=true; skip=true; }
    [[ ${3,,} == localinstallonly ]] && { local=true; inst=true; skip=true; }
  }
+
+ source ./Conf/Collect_info.sh
+ source ./Conf/Gen_cfunction.sh
+ source ./Conf/Reset_version.sh
+
  if [[ ${sys} == "intel_general" ]]; then
    sys6=${sys:6}
    source ./Conf/Sfcio_${sys:0:5}_${sys6^}.sh
@@ -44,9 +49,6 @@
    echo "??? SFCIO: module/environment not set."
    exit 1
  }
-
- source ./Conf/Collect_info.sh
- source ./Conf/Gen_cfunction.sh
 
 set -x
  sfcioLib4=$(basename ${SFCIO_LIB4})
@@ -80,13 +82,20 @@ set -x
 #
 #     Install libraries and source files 
 #
-   $local && LIB_DIR4=.. || LIB_DIR4=$(dirname ${SFCIO_LIB4})
-   [ -d $LIB_DIR4 ] || mkdir -p $LIB_DIR4
-   INCP_DIR4=$(dirname $SFCIO_INC4)
-   [ -d $SFCIO_INC4 ] && rm -rf $SFCIO_INC4 || mkdir -p $INCP_DIR4
-   SRC_DIR=$SFCIO_SRC
-   $local && SRC_DIR=
-   [ -d $SRC_DIR ] || mkdir -p $SRC_DIR
+   $local && {
+              LIB_DIR4=..
+              INCP_DIR4=..
+              SRC_DIR=
+             } || {
+              LIB_DIR4=$(dirname $SFCIO_LIB4)
+              INCP_DIR4=$(dirname $SFCIO_INC4)
+              SRC_DIR=$SFCIO_SRC
+              [ -d $LIB_DIR4 ] || mkdir -p $LIB_DIR4
+              [ -d $SFCIO_INC4 ] && { rm -rf $SFCIO_INC4; } \
+                                 || { mkdir -p $INCP_DIR4; }
+              [ -z $SRC_DIR ] || { [ -d $SRC_DIR ] || mkdir -p $SRC_DIR; }
+             }
+
    make clean LIB=
    make install LIB=$sfcioLib4 MOD=$sfcioInc4 \
                 LIB_DIR=$LIB_DIR4 INC_DIR=$INCP_DIR4 SRC_DIR=$SRC_DIR
