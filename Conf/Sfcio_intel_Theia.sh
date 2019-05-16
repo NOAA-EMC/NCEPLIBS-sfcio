@@ -4,7 +4,11 @@
  module use -a $WORKDIR/modulefiles/core_third
  module load EnvVars/1.0.2
  module load ips/18.0.1.163
- module load dev/sfcio/1.1.0
+
+ module load dev/sfcio/1.0.0
+ new_ver=v1.1.0
+ reset_version sfcio $new_ver
+
 
  export CC=icc
  export FC=ifort

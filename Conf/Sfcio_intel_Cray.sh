@@ -3,7 +3,7 @@
  module load intel/18.1.163
  
  module load sfcio-intel/1.0.0
- new_ver=1.1.0
+ new_ver=v1.1.0
  reset_version sfcio $new_ver
 
  export CC=icc
