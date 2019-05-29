@@ -84,7 +84,8 @@ set -x
 #
    $local && {
               LIB_DIR4=..
-              INCP_DIR4=..
+              INCP_DIR=../include
+              INCP_DIR4=$INCP_DIR
               SRC_DIR=
              } || {
               LIB_DIR4=$(dirname $SFCIO_LIB4)
