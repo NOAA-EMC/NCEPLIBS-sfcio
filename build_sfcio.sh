@@ -1,14 +1,14 @@
 #!/bin/sh
 
  (( $# == 0 )) && {
-   echo "*** Usage: $0 wcoss|dell|cray|theia|intel_general|gnu_general [debug|build] [[local]install[only]]"
+   echo "*** Usage: $0 wcoss|dell|cray|theia|intel_general|gnu_general [debug|build] [[local]install[only]]" >&2
    exit 1
  }
 
  sys=${1,,}
  [[ $sys == wcoss || $sys == dell || $sys == cray ||\
     $sys == theia || $sys == intel_general || $sys == gnu_general ]] || {
-   echo "*** Usage: $0 wcoss|dell|cray|theia|intel_general|gnu_general [debug|build] [[local]install[only]]"
+   echo "*** Usage: $0 wcoss|dell|cray|theia|intel_general|gnu_general [debug|build] [[local]install[only]]" >&2
    exit 1
  }
  debg=false
@@ -45,8 +45,12 @@
  else
    source ./Conf/Sfcio_intel_${sys^}.sh
  fi
+ $CC --version &> /dev/null || {
+   echo "??? SFCIO: compilers not set." >&2
+   exit 1
+ }
  [[ -z $SFCIO_VER || -z $SFCIO_LIB4 ]] && {
-   echo "??? SFCIO: module/environment not set."
+   echo "??? SFCIO: module/environment not set." >&2
    exit 1
  }
 
@@ -85,6 +89,7 @@ set -x
    $local && {
               LIB_DIR4=..
               INCP_DIR=../include
+              [ -d $INCP_DIR ] || { mkdir -p $INCP_DIR; }
               INCP_DIR4=$INCP_DIR
               SRC_DIR=
              } || {
