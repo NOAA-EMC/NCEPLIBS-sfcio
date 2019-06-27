@@ -1,27 +1,28 @@
 # *** for WCOSS Cray (intel) ***
  module purge
- module load intel/18.1.163
+ module load PrgEnv-intel
+ module load craype-sandybridge
  
  module load sfcio-intel/1.0.0
  new_ver=v1.1.0
  reset_version sfcio $new_ver
 
- export CC=icc
- export FC=ifort
+ export CC=cc
+ export FC=ftn
  export CPP=cpp
  export OMPCC="$CC -qopenmp"
  export OMPFC="$FC -qopenmp"
  export MPICC=mpiicc
  export MPIFC=mpiifort
 
- export DEBUG="-g -O0"
- export CFLAGS="-O3 -fPIC"
- export FFLAGS="-O3 -convert big_endian -assume byterecl -fPIC"
+ export DEBUG="-g -traceback -O0"
+ export CFLAGS="-g -traceback -O3 -axCORE-AVX2 -fPIC"
+ export FFLAGS="-g -traceback -O3 -axCORE-AVX2 -convert big_endian -assume byterecl -fPIC"
  export FPPCPP="-cpp"
  export FREEFORM="-free"
  export CPPFLAGS="-P -traditional-cpp"
- export MPICFLAGS="-O3 -fPIC"
- export MPIFFLAGS="-O3 -fPIC"
+ export MPICFLAGS="-g -traceback -O3 -axCORE-AVX2 -fPIC"
+ export MPIFFLAGS="-g -traceback -O3 -axCORE-AVX2 -fPIC"
  export MODPATH="-module "
  export I4R4="-integer-size 32 -real-size 32"
  export I4R8="-integer-size 32 -real-size 64"
