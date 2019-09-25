@@ -1,0 +1,52 @@
+cmake_minimum_required(VERSION 2.6)
+project(sfcio)
+set(VERSION v1.1.0)
+enable_language (Fortran)
+if (NOT CMAKE_BUILD_TYPE)
+    set (CMAKE_BUILD_TYPE RELEASE CACHE STRING
+        "Choose the type of build, options are: PRODUCTION Debug Release."
+        FORCE)
+endif()
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+  message("setting intel true")
+  set(IntelComp true )
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU*")
+  set(GNUComp true )
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "pgc*")
+  set(PGIComp true )
+endif()
+find_package(MPI REQUIRED)
+include_directories(${MPI_INCLUDE_PATH} ${MPI_Fortran_INCLUDE_PATH} )
+
+STRING(COMPARE EQUAL ${CMAKE_BUILD_TYPE} "RelWithDebInfo" BUILD_RELEASE)
+STRING(COMPARE EQUAL ${CMAKE_BUILD_TYPE} "RELEASE" BUILD_RELEASE)
+STRING(COMPARE EQUAL ${CMAKE_BUILD_TYPE} "PRODUCTION" BUILD_PRODUCTION)
+STRING(COMPARE EQUAL ${CMAKE_BUILD_TYPE} "DEGUG" BUILD_DEBUG)
+if( (BUILD_RELEASE) OR (BUILD_PRODUCTION) )
+  if(IntelComp)
+    message("setting intel flags")
+    set(CMAKE_Fortran_FLAGS "-O2 -g -xHOST -traceback -free -convert big_endian -assume byterecl " CACHE INTERNAL "" )
+  elseif(GNUComp)
+    set(CMAKE_Fortran_FLAGS "-O2 -ggdb -ffree-form -funroll-loops -Wall " CACHE INTERNAL "" )
+  elseif(PGIComp)
+  else()
+    message("unkown compiler!")
+    exit()
+  endif()
+endif()
+set(LIBNAME ${CMAKE_PROJECT_NAME}_${VERSION})
+file(GLOB LIB_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/*.f )
+add_definitions( ${CMAKE_Fortran_FLAGS} )
+add_library(${LIBNAME} STATIC ${LIB_SRC} )
+set(CMAKE_INCLUDE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/include")
+set_target_properties(${LIBNAME} PROPERTIES Fortran_MODULE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/include")
+target_include_directories(${LIBNAME} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/include")
+
+file(MAKE_DIRECTORY ${CMAKE_INCLUDE_OUTPUT_DIRECTORY})
+
+install(TARGETS ${LIBNAME}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib) 
+
+install(DIRECTORY ${CMAKE_INCLUDE_OUTPUT_DIRECTORY}/ DESTINATION include )
