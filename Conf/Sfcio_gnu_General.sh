@@ -5,23 +5,8 @@
  ${USERMODE} && {
     echo "Environment set by user"
 # On theia/cray, user can load environment
-#   module load gcc/6.2.0
-# Or set environment on specific platform
-    gcc_version=6.2.0
-    gcc_topdir=/apps/gcc/$gcc_version
-    export PATH=$gcc_topdir/bin:$PATH
-    export LIBRARY_PATH=$gcc_topdir/lib64:$LIBRARY_PATH
-    export LD_LIBRARY_PATH=$gcc_topdir/lib64:$LD_LIBRARY_PATH
-    export INCLUDE=$gcc_topdir/include:$INCLUDE
-    export MANPATH=$gcc_topdir/share/man:$MANPATH
+    module load gcc/6.2.0
  }
-
- ANCHORDIR=..
- export COMP=gnu
- export SFCIO_VER=v1.1.0
- export SFCIO_SRC=
- export SFCIO_INC4=$ANCHORDIR/include/sfcio_${SFCIO_VER}_4
- export SFCIO_LIB4=$ANCHORDIR/libsfcio_${SFCIO_VER}_4.a
 
  export CC=gcc
  export FC=gfortran
