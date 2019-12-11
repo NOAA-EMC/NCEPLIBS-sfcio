@@ -87,7 +87,7 @@ set -x
        SFCIO_INC4=$INCP_DIR4/$SFCIO_INC4
        [ -d $SFCIO_INC4 ] && { rm -rf $SFCIO_INC4; } \
                           || { mkdir -p $INCP_DIR4; }
-       SRC_DIR=$instloc/src
+       SRC_DIR=$instloc/src/${libver}
        [[ $instloc == .. ]] && SRC_DIR=
      }
      [ -d $LIB_DIR4 ] || mkdir -p $LIB_DIR4
