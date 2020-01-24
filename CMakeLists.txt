@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.15)
 project(sfcio VERSION 1.1.0)
 enable_language (Fortran)
 
@@ -9,7 +9,6 @@ if (NOT CMAKE_BUILD_TYPE)
 endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-  message("setting intel true")
   set(IntelComp true )
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU*" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang*")
   set(GNUComp true )
@@ -24,7 +23,6 @@ STRING(COMPARE EQUAL ${CMAKE_BUILD_TYPE} "DEBUG" BUILD_DEBUG)
 
 if( (BUILD_RELEASE) OR (BUILD_PRODUCTION) )
   if(IntelComp)
-    message("setting intel flags")
     set(fortran_flags "-O2" "-g" "-xHOST" "-traceback" "-free" "-convert big_endian" "-assume byterecl")
   elseif(GNUComp)
     set(fortran_flags "-O2" "-ggdb" "-fbacktrace" "-ffree-form"
