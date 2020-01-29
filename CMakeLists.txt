@@ -23,7 +23,8 @@ STRING(COMPARE EQUAL ${CMAKE_BUILD_TYPE} "DEBUG" BUILD_DEBUG)
 
 if( (BUILD_RELEASE) OR (BUILD_PRODUCTION) )
   if(IntelComp)
-    set(fortran_flags "-O2" "-g" "-xHOST" "-traceback" "-free" "-convert big_endian" "-assume byterecl")
+    set(fortran_flags "-O2" "-g" "-xHOST" "-traceback" "-free" "-convert" "big_endian"
+      "-assume" "byterecl")
   elseif(GNUComp)
     set(fortran_flags "-O2" "-ggdb" "-fbacktrace" "-ffree-form"
       "-fconvert=big-endian" "-funroll-loops" "-Wall")
