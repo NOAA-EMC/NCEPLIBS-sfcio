@@ -1,14 +1,14 @@
-cmake_minimum_required(VERSION 2.6)
-project(sfcio)
-set(VERSION v1.1.0)
+cmake_minimum_required(VERSION 3.15)
+project(sfcio VERSION 1.1.0)
 enable_language (Fortran)
+
 if (NOT CMAKE_BUILD_TYPE)
-    set (CMAKE_BUILD_TYPE RELEASE CACHE STRING
-        "Choose the type of build, options are: PRODUCTION Debug Release."
-        FORCE)
+  set (CMAKE_BUILD_TYPE RELEASE CACHE STRING
+    "Choose the type of build, options are: PRODUCTION Debug Release."
+    FORCE)
 endif()
+
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-  message("setting intel true")
   set(IntelComp true )
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU*" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang*")
   set(GNUComp true )
@@ -20,30 +20,41 @@ STRING(COMPARE EQUAL ${CMAKE_BUILD_TYPE} "RelWithDebInfo" BUILD_RELEASE)
 STRING(COMPARE EQUAL ${CMAKE_BUILD_TYPE} "RELEASE" BUILD_RELEASE)
 STRING(COMPARE EQUAL ${CMAKE_BUILD_TYPE} "PRODUCTION" BUILD_PRODUCTION)
 STRING(COMPARE EQUAL ${CMAKE_BUILD_TYPE} "DEBUG" BUILD_DEBUG)
+
 if( (BUILD_RELEASE) OR (BUILD_PRODUCTION) )
   if(IntelComp)
-    message("setting intel flags")
-    set(CMAKE_Fortran_FLAGS "-O2 -g -xHOST -traceback -free -convert big_endian -assume byterecl " CACHE INTERNAL "" )
+    set(fortran_flags "-O2" "-g" "-xHOST" "-traceback" "-free" "-convert" "big_endian"
+      "-assume" "byterecl")
   elseif(GNUComp)
-    set(CMAKE_Fortran_FLAGS "-O2 -ggdb -fbacktrace -ffree-form -fconvert=big-endian -funroll-loops -Wall " CACHE INTERNAL "" )
+    set(fortran_flags "-O2" "-ggdb" "-fbacktrace" "-ffree-form"
+      "-fconvert=big-endian" "-funroll-loops" "-Wall")
   else()
     message("unknown compiler!")
     exit()
   endif()
 endif()
-set(LIBNAME ${CMAKE_PROJECT_NAME}_${VERSION}_4)
-file(GLOB LIB_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/*.f )
-add_definitions( ${CMAKE_Fortran_FLAGS} )
-add_library(${LIBNAME} STATIC ${LIB_SRC} )
-set(CMAKE_INCLUDE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/include_4")
-set_target_properties(${LIBNAME} PROPERTIES Fortran_MODULE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/include_4")
-target_include_directories(${LIBNAME} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/include_4")
 
-file(MAKE_DIRECTORY ${CMAKE_INCLUDE_OUTPUT_DIRECTORY})
+set(lib_name ${PROJECT_NAME})
+set(versioned_lib_name ${PROJECT_NAME}_v${PROJECT_VERSION})
 
-install(TARGETS ${LIBNAME}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
-        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib) 
+file(GLOB fortran_src ${CMAKE_CURRENT_SOURCE_DIR}/src/*.f)
+add_library(${lib_name} STATIC ${fortran_src})
+set_target_properties(${lib_name} PROPERTIES OUTPUT_NAME "${versioned_lib_name}")
 
-install(DIRECTORY ${CMAKE_INCLUDE_OUTPUT_DIRECTORY}/ DESTINATION include_4 )
+target_compile_options(${lib_name} PRIVATE ${fortran_flags})
+
+set(module_dir "${PROJECT_BINARY_DIR}/include_4")
+set_target_properties(${lib_name} PROPERTIES Fortran_MODULE_DIRECTORY ${module_dir})
+
+target_include_directories(${lib_name} PUBLIC
+  $<BUILD_INTERFACE:${module_dir}>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include_4>)
+
+install(TARGETS ${lib_name}
+  EXPORT ${PROJECT_NAME}-config
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib) 
+install(DIRECTORY ${module_dir} DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(EXPORT ${PROJECT_NAME}-config DESTINATION ${CMAKE_INSTALL_PREFIX})
+
