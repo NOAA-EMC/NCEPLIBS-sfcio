@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 project(sfcio VERSION 1.1.0)
+set(${PROJECT_NAME}_VERSION ${PROJECT_VERSION} CACHE INTERNAL "${PROJECT_NAME} version number")
 enable_language (Fortran)
 
 if (NOT CMAKE_BUILD_TYPE)
@@ -34,8 +35,8 @@ if( (BUILD_RELEASE) OR (BUILD_PRODUCTION) )
   endif()
 endif()
 
-set(lib_name ${PROJECT_NAME})
-set(versioned_lib_name ${PROJECT_NAME}_v${PROJECT_VERSION})
+set(lib_name ${PROJECT_NAME}_4)
+set(versioned_lib_name ${PROJECT_NAME}_v${PROJECT_VERSION}_4)
 
 file(GLOB fortran_src ${CMAKE_CURRENT_SOURCE_DIR}/src/*.f)
 add_library(${lib_name} STATIC ${fortran_src})
