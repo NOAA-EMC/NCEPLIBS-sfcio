@@ -1,11 +1,13 @@
 # SFCIO
 
-Does something with Surface files!
+API for surface files I/O
+
+Code manager: George Vandenberghe
 
 
 ### Prerequisites
 
-Compilers: GNU | Intel | Clang | AppleClang | PGI
+Compilers: GNU | Intel | Clang | AppleClang 
 
 
 ### Installing
@@ -20,7 +22,7 @@ make install
 
 
 ### Version
-1.1.0
+1.2.0
 
 
 ### Authors
