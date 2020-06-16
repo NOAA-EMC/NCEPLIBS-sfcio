@@ -26,6 +26,8 @@ target_include_directories(${lib_name} PUBLIC
 
 list(APPEND LIB_TARGETS ${lib_name})
 
+install(DIRECTORY ${module_dir} DESTINATION ${CMAKE_INSTALL_PREFIX})
+
 install(
   TARGETS ${LIB_TARGETS}
   EXPORT ${PROJECT_NAME}Exports
