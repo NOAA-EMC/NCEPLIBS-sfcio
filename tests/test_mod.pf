@@ -1,4 +1,4 @@
-module test_sigio_mod
+module test_mod
   use funit
   use iso_fortran_env, only: real32, real64
     
@@ -9,4 +9,4 @@ contains
       @assertTrue(.true., "true is true")
     end subroutine test_sigio
     
-end module test_sigio_mod
+end module test_mod
