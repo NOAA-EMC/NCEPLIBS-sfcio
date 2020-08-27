@@ -2,11 +2,11 @@
 
 if(CMAKE_Fortran_COMPILER_ID MATCHES "^(Intel)$")
   set(CMAKE_Fortran_FLAGS
-      "-g -xHOST -traceback -free -convert big_endian -assume byterecl")
+      "-g -traceback -free -convert big_endian -assume byterecl ${CMAKE_Fortran_FLAGS}")
   set(CMAKE_Fortran_FLAGS_RELEASE "-O2")
-elseif(CMAKE_Fortran_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$")
+elseif(CMAKE_Fortran_COMPILER_ID MATCHES "^(GNU)$")
   set(CMAKE_Fortran_FLAGS
-      "-g -fbacktrace -ffree-form -fconvert=big-endian -funroll-loops")
+      "-g -fbacktrace -ffree-form -fconvert=big-endian -funroll-loops ${CMAKE_Fortran_FLAGS}")
   set(CMAKE_Fortran_FLAGS_RELEASE "-O2")
   set(CMAKE_Fortran_FLAGS_DEBUG "-ggdb -Wall")
 endif()
