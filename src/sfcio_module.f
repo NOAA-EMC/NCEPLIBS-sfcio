@@ -1,405 +1,400 @@
-!-------------------------------------------------------------------------------
+!> @file
+!!
+!! API for global spectral surface file I/O.
+!! @author iredell @date 1999-01-18
+!!
+!! This module provides an Application Program Interface
+!!   for performing I/O on the surface restart file of the global spectral model.
+!!   Functions include opening, reading, writing, and closing as well as
+!!   allocating and deallocating data buffers used in the transfers.
+!!   The I/O performed here is sequential.
+!!   The transfers are limited to header records or data records.
+!!   
+!!
+!! Public Variables:
+!! -  sfcio_lhead1      Integer parameter length of first header record (=32)
+!! -  sfcio_intkind     Integer parameter kind or length of passed integers (=4)
+!! -  sfcio_realkind    Integer parameter kind or length of passed reals (=4)
+!! -  sfcio_dblekind    Integer parameter kind or length of passed longreals (=8)
+!! -  sfcio_realfill    Real(sfcio_realkind) fill value (=-9999.)
+!! -  sfcio_dblefill    Real(sfcio_dblekind) fill value (=-9999.)
+!!<pre>
+!! Public Defined Types:
+!!   sfcio_head        Surface file header information
+!!     clabsfc           Character(sfcio_lhead1) ON85 label
+!!     fhour             Real(sfcio_realkind) forecast hour
+!!     idate             Integer(sfcio_intkind)(4) initial date
+!!                       (hour, month, day, 4-digit year)
+!!     latb              Integer(sfcio_intkind) latitudes
+!!     lonb              Integer(sfcio_intkind) longitudes
+!!     ivs               Integer(sfcio_intkind) version number
+!!     lsoil             Integer(sfcio_intkind) soil levels
+!!     irealf            Integer(sigio_intkind) floating point flag
+!!                       (=1 for 4-byte ieee, =2 for 8-byte ieee)
+!!     lpl               Integer(sfcio_intkind)(latb/2) lons per lat
+!!     zsoil             Real(sfcio_realkind) soil depths (meter)
+!!
+!!   sfcio_data        Surface file data fields
+!!     tsea              Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       surface temperature in K
+!!     smc               Real(sfcio_realkind)(:,:,:) pointer to lonb*latb*lsoil
+!!                       soil volumetric water content in fraction
+!!     sheleg            Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       snow depth in m
+!!     stc               Real(sfcio_realkind)(:,:,:) pointer to lonb*latb*lsoil
+!!                       soil temperature in K
+!!     tg3               Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       deep soil temperature in K
+!!     zorl              Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       roughness in cm
+!!     cv                Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       convective cloud cover in fraction
+!!     cvb               Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       convective cloud bottom in kpa
+!!     cvt               Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       convective cloud top in kpa
+!!     alvsf             Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       albedo for visible scattered in fraction
+!!     alvwf             Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       albedo for visible beam in fraction
+!!     alnsf             Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       albedo for near-IR scattered in fraction
+!!     alnwf             Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       albedo for near-IR beam in fraction
+!!     slmsk             Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       sea-land-ice mask (0-sea, 1-land, 2-ice)
+!!     vfrac             Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       vegetation fraction in fraction
+!!     canopy            Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       canopy water in m
+!!     f10m              Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       10-meter wind speed over lowest model wind speed
+!!     t2m               Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       2-meter temperature in K
+!!     q2m               Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       2-meter specific humidity in kg/kg
+!!     vtype             Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       vegetation type in integer 1-13
+!!     stype             Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       soil type in integer 1-9
+!!     facsf             Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       xxx in fraction
+!!     facwf             Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       xxx in fraction
+!!     uustar            Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       xxx in xxx
+!!     ffmm              Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       xxx in xxx
+!!     ffhh              Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       xxx in xxx
+!!     hice              Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       xxx in xxx
+!!     fice              Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       xxx in xxx
+!!     tisfc             Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       xxx in xxx
+!!     tprcp             Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       xxx in xxx
+!!     srflag            Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       xxx in xxx
+!!     snwdph            Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       xxx in xxx
+!!     slc               Real(sfcio_realkind)(:,:,:) pointer to lonb*latb*lsoil
+!!                       xxx in xxx
+!!     shdmin            Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       xxx in xxx
+!!     shdmax            Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       xxx in xxx
+!!     slope             Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       xxx in xxx
+!!     snoalb            Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       xxx in xxx
+!!     orog              Real(sfcio_realkind)(:,:) pointer to lonb*latb
+!!                       orography in m
+!!                       
+!!   sfcio_dbta        Surface file longreal data fields
+!!                       
+!! Public Subprograms:
+!!   sfcio_sropen      Open surface file for sequential reading
+!!     lu                Integer(sfcio_intkind) input logical unit
+!!     cfname            Character(*) input filename
+!!     iret              Integer(sfcio_intkind) output return code
+!!
+!!   sfcio_swopen      Open surface file for sequential writing
+!!     lu                Integer(sfcio_intkind) input logical unit
+!!     cfname            Character(*) input filename
+!!     iret              Integer(sfcio_intkind) output return code
+!!
+!!   sfcio_sclose      Close surface file for sequential I/O
+!!     lu                Integer(sfcio_intkind) input logical unit
+!!     iret              Integer(sfcio_intkind) output return code
+!!
+!!   sfcio_srhead      Read header information with sequential I/O
+!!     lu                Integer(sfcio_intkind) input logical unit
+!!     head              Type(sfcio_head) output header information
+!!     iret              Integer(sfcio_intkind) output return code
+!!
+!!   sfcio_swhead      Write header information with sequential I/O
+!!     lu                Integer(sfcio_intkind) input logical unit
+!!     head              Type(sfcio_head) input header information
+!!     iret              Integer(sfcio_intkind) output return code
+!!
+!!   sfcio_alhead      Allocate head allocatables
+!!     head              Type(sfcio_head) input/output header information
+!!     iret              Integer(sfcio_intkind) output return code
+!!     latb              Integer(sfcio_intkind) optional latitudes
+!!     lsoil             Integer(sfcio_intkind) optional soil levels
+!!
+!!   sfcio_aldata      Allocate data fields
+!!     head              Type(sfcio_head) input header information
+!!     data              Type(sfcio_data) output data fields
+!!     iret              Integer(sfcio_intkind) output return code
+!!
+!!   sfcio_axdata      Deallocate data fields
+!!     data              Type(sfcio_data) output data fields
+!!     iret              Integer(sfcio_intkind) output return code
+!!
+!!   sfcio_srdata      Read data fields with sequential I/O
+!!     lu                Integer(sfcio_intkind) input logical unit
+!!     head              Type(sfcio_head) input header information
+!!     data              Type(sfcio_data) output data fields
+!!     iret              Integer(sfcio_intkind) output return code
+!!
+!!   sfcio_swdata      Write data fields with sequential I/O
+!!     lu                Integer(sfcio_intkind) input logical unit
+!!     head              Type(sfcio_head) input header information
+!!     data              Type(sfcio_data) input data fields
+!!     iret              Integer(sfcio_intkind) output return code
+!!
+!!   sfcio_srohdc      Open, read header & data and close with sequential I/O
+!!     lu                Integer(sfcio_intkind) input logical unit
+!!     cfname            Character(*) input filename
+!!     head              Type(sfcio_head) output header information
+!!     data              Type(sfcio_data) output data fields
+!!     iret              Integer(sfcio_intkind) output return code
+!!
+!!   sfcio_swohdc      Open, write header & data and close with sequential I/O
+!!     lu                Integer(sfcio_intkind) input logical unit
+!!     cfname            Character(*) input filename
+!!     head              Type(sfcio_head) input header information
+!!     data              Type(sfcio_data) input data fields
+!!     iret              Integer(sfcio_intkind) output return code
+!!
+!!   sfcio_aldbta      Allocate longreal data fields
+!!     head              Type(sfcio_head) input header information
+!!     dbta              Type(sfcio_dbta) output longreal data fields
+!!     iret              Integer(sfcio_intkind) output return code
+!!
+!!   sfcio_axdbta      Deallocate longreal data fields
+!!     dbta              Type(sfcio_dbta) output longreal data fields
+!!     iret              Integer(sfcio_intkind) output return code
+!!
+!!   sfcio_srdbta      Read longreal data fields with sequential I/O
+!!     lu                Integer(sfcio_intkind) input logical unit
+!!     head              Type(sfcio_head) input header information
+!!     dbta              Type(sfcio_dbta) output longreal data fields
+!!     iret              Integer(sfcio_intkind) output return code
+!!
+!!   sfcio_swdbta      Write longreal data fields with sequential I/O
+!!     lu                Integer(sfcio_intkind) input logical unit
+!!     head              Type(sfcio_head) input header information
+!!     dbta              Type(sfcio_dbta) input longreal data fields
+!!     iret              Integer(sfcio_intkind) output return code
+!!
+!! Remarks:
+!!   (1) Here's the supported surface file formats.
+!!       For ivs=199802 (read-only):
+!!         ON85 label (32 bytes)
+!!         Header information record containing
+!!           fhour, idate, lonb, latb, ivs (8 4-byte words)
+!!         tsea (lonb*latb 4-byte words)
+!!         smc (lonb*latb*lsoil 4-byte words)
+!!         sheleg (lonb*latb 4-byte words)
+!!         stc (lonb*latb*lsoil 4-byte words)
+!!         tg3 (lonb*latb 4-byte words)
+!!         zorl (lonb*latb 4-byte words)
+!!         cv (lonb*latb 4-byte words)
+!!         cvb (lonb*latb 4-byte words)
+!!         cvt (lonb*latb 4-byte words)
+!!         alvsf,alvwf,alnsf,alnwf (lonb*latb*4 4-byte words)
+!!         slmsk (lonb*latb 4-byte words)
+!!         vfrac (lonb*latb 4-byte words)
+!!         canopy (lonb*latb 4-byte words)
+!!         f10m (lonb*latb 4-byte words)
+!!         vtype (lonb*latb 4-byte words)
+!!         stype (lonb*latb 4-byte words)
+!!         facsf,facwf (lonb*latb*2 4-byte words)
+!!         uustar (lonb*latb 4-byte words)
+!!         ffmm (lonb*latb 4-byte words)
+!!         ffhh (lonb*latb 4-byte words)
+!!       For ivs=200004:
+!!         ON85 label (32 bytes)
+!!         Header information record containing
+!!           fhour, idate, lonb, latb, ivs, lpl (8+latb/2 4-byte words)
+!!         tsea (lonb*latb 4-byte words)
+!!         smc (lonb*latb*lsoil 4-byte words)
+!!         sheleg (lonb*latb 4-byte words)
+!!         stc (lonb*latb*lsoil 4-byte words)
+!!         tg3 (lonb*latb 4-byte words)
+!!         zorl (lonb*latb 4-byte words)
+!!         cv (lonb*latb 4-byte words)
+!!         cvb (lonb*latb 4-byte words)
+!!         cvt (lonb*latb 4-byte words)
+!!         alvsf,alvwf,alnsf,alnwf (lonb*latb*4 4-byte words)
+!!         slmsk (lonb*latb 4-byte words)
+!!         vfrac (lonb*latb 4-byte words)
+!!         canopy (lonb*latb 4-byte words)
+!!         f10m (lonb*latb 4-byte words)
+!!         vtype (lonb*latb 4-byte words)
+!!         stype (lonb*latb 4-byte words)
+!!         facsf,facwf (lonb*latb*2 4-byte words)
+!!         uustar (lonb*latb 4-byte words)
+!!         ffmm (lonb*latb 4-byte words)
+!!         ffhh (lonb*latb 4-byte words)
+!!       For ivs=200412 (read-only):
+!!         ON85 label (32 bytes)
+!!         Header information record containing
+!!           fhour, idate, lonb, latb, ivs, lpl (8+latb/2 4-byte words)
+!!         tsea (lonb*latb 4-byte words)
+!!         smc (lonb*latb*lsoil 4-byte words)
+!!         sheleg (lonb*latb 4-byte words)
+!!         stc (lonb*latb*lsoil 4-byte words)
+!!         tg3 (lonb*latb 4-byte words)
+!!         zorl (lonb*latb 4-byte words)
+!!         cv (lonb*latb 4-byte words)
+!!         cvb (lonb*latb 4-byte words)
+!!         cvt (lonb*latb 4-byte words)
+!!         alvsf,alvwf,alnsf,alnwf (lonb*latb*4 4-byte words)
+!!         slmsk (lonb*latb 4-byte words)
+!!         vfrac (lonb*latb 4-byte words)
+!!         canopy (lonb*latb 4-byte words)
+!!         f10m (lonb*latb 4-byte words)
+!!         vtype (lonb*latb 4-byte words)
+!!         stype (lonb*latb 4-byte words)
+!!         facsf,facwf (lonb*latb*2 4-byte words)
+!!         uustar (lonb*latb 4-byte words)
+!!         ffmm (lonb*latb 4-byte words)
+!!         ffhh (lonb*latb 4-byte words)
+!!         hice (lonb*latb 4-byte words)
+!!         fice (lonb*latb 4-byte words)
+!!         tisfc (lonb*latb 4-byte words)
+!!         tprcp (lonb*latb 4-byte words)
+!!         srflag (lonb*latb 4-byte words)
+!!         snwdph (lonb*latb 4-byte words)
+!!         slc (lonb*latb*lsoil 4-byte words)
+!!         shdmin (lonb*latb 4-byte words)
+!!         shdmax (lonb*latb 4-byte words)
+!!         slope (lonb*latb 4-byte words)
+!!         snoalb (lonb*latb 4-byte words)
+!!       For ivs=200501:
+!!         Label containing
+!!           'GFS ','SFC ',ivs,nhead,ndata,reserved(3) (8 4-byte words)
+!!         Header records
+!!           lhead(nhead),ldata(ndata) (nhead+ndata 4-byte words)
+!!           fhour, idate(4), lonb, latb, lsoil  (8 4-byte words)
+!!           lpl  (latb/2 4-byte words)
+!!           zsoil  (lsoil 4-byte words)
+!!         Data records
+!!           slmsk (lonb*latb 4-byte words)
+!!           orog (lonb*latb 4-byte words)
+!!           tsea (lonb*latb 4-byte words)
+!!           sheleg (lonb*latb 4-byte words)
+!!           tg3 (lonb*latb 4-byte words)
+!!           zorl (lonb*latb 4-byte words)
+!!           alvsf (lonb*latb 4-byte words)
+!!           alvwf (lonb*latb 4-byte words)
+!!           alnsf (lonb*latb 4-byte words)
+!!           alnwf (lonb*latb 4-byte words)
+!!           vfrac (lonb*latb 4-byte words)
+!!           canopy (lonb*latb 4-byte words)
+!!           f10m (lonb*latb 4-byte words)
+!!           vtype (lonb*latb 4-byte words)
+!!           stype (lonb*latb 4-byte words)
+!!           facsf (lonb*latb 4-byte words)
+!!           facwf (lonb*latb 4-byte words)
+!!           uustar (lonb*latb 4-byte words)
+!!           ffmm (lonb*latb 4-byte words)
+!!           ffhh (lonb*latb 4-byte words)
+!!           hice (lonb*latb 4-byte words)
+!!           fice (lonb*latb 4-byte words)
+!!           tprcp (lonb*latb 4-byte words)
+!!           srflag (lonb*latb 4-byte words)
+!!           snwdph (lonb*latb 4-byte words)
+!!           shdmin (lonb*latb 4-byte words)
+!!           shdmax (lonb*latb 4-byte words)
+!!           slope (lonb*latb 4-byte words)
+!!           snoalb (lonb*latb 4-byte words)
+!!           lsoil stc (lonb*latb 4-byte words)
+!!           lsoil smc (lonb*latb 4-byte words)
+!!           lsoil slc (lonb*latb 4-byte words)
+!!       For ivs=200509:
+!!         Label containing
+!!           'GFS ','SFC ',ivs,nhead,ndata,reserved(3) (8 4-byte words)
+!!         Header records
+!!           lhead(nhead),ldata(ndata) (nhead+ndata 4-byte words)
+!!           fhour, idate(4), lonb, latb, lsoil, irealf,
+!!             reserved(16)  (25 4-byte words)
+!!           lpl  (latb/2 4-byte words)
+!!           zsoil  (lsoil 4-byte words)
+!!         Data records
+!!           slmsk (lonb*latb 4-byte words)
+!!           orog (lonb*latb 4-byte words)
+!!           tsea (lonb*latb 4-byte words)
+!!           sheleg (lonb*latb 4-byte words)
+!!           tg3 (lonb*latb 4-byte words)
+!!           zorl (lonb*latb 4-byte words)
+!!           alvsf (lonb*latb 4-byte words)
+!!           alvwf (lonb*latb 4-byte words)
+!!           alnsf (lonb*latb 4-byte words)
+!!           alnwf (lonb*latb 4-byte words)
+!!           vfrac (lonb*latb 4-byte words)
+!!           canopy (lonb*latb 4-byte words)
+!!           f10m (lonb*latb 4-byte words)
+!!           t2m (lonb*latb 4-byte words)
+!!           q2m (lonb*latb 4-byte words)
+!!           vtype (lonb*latb 4-byte words)
+!!           stype (lonb*latb 4-byte words)
+!!           facsf (lonb*latb 4-byte words)
+!!           facwf (lonb*latb 4-byte words)
+!!           uustar (lonb*latb 4-byte words)
+!!           ffmm (lonb*latb 4-byte words)
+!!           ffhh (lonb*latb 4-byte words)
+!!           hice (lonb*latb 4-byte words)
+!!           fice (lonb*latb 4-byte words)
+!!           tisfc (lonb*latb 4-byte words)
+!!           tprcp (lonb*latb 4-byte words)
+!!           srflag (lonb*latb 4-byte words)
+!!           snwdph (lonb*latb 4-byte words)
+!!           shdmin (lonb*latb 4-byte words)
+!!           shdmax (lonb*latb 4-byte words)
+!!           slope (lonb*latb 4-byte words)
+!!           snoalb (lonb*latb 4-byte words)
+!!           lsoil stc (lonb*latb 4-byte words)
+!!           lsoil smc (lonb*latb 4-byte words)
+!!           lsoil slc (lonb*latb 4-byte words)
+!!</pre>
+!!
+!!   (2) Possible return codes:
+!!    -      0   Successful call
+!!    -     -1   Open or close I/O error
+!!    -     -2   Header record I/O error or unrecognized version
+!!    -     -3   Allocation or deallocation error
+!!    -     -4   Data record I/O error
+!!    -     -5   Insufficient data dimensions allocated
+!!
+!! Examples:
+!!   (1) Read the entire surface file 'sfcf24' and
+!!       print out the northernmost surface temperature at greenwich.
+!! @code
+!!     use sfcio_module
+!!     type(sfcio_head):: head
+!!     type(sfcio_data):: data
+!!     call sfcio_srohdc(11,'sfcf24',head,data,iret)
+!!     print '(f8.2)',data%tsea(1,1)
+!!     end
+!! @endcode      
+!!
 module sfcio_module
-!$$$  Module Documentation Block
-!
-! Module:    sfcio_module    API for global spectral surface file I/O
-!   Prgmmr: iredell          Org: w/nx23     date: 1999-01-18
-!
-! Abstract: This module provides an Application Program Interface
-!   for performing I/O on the surface restart file of the global spectral model.
-!   Functions include opening, reading, writing, and closing as well as
-!   allocating and deallocating data buffers used in the transfers.
-!   The I/O performed here is sequential.
-!   The transfers are limited to header records or data records.
-!   
-! Program History Log:
-!   1999-01-18  Mark Iredell
-!
-! Public Variables:
-!   sfcio_lhead1      Integer parameter length of first header record (=32)
-!   sfcio_intkind     Integer parameter kind or length of passed integers (=4)
-!   sfcio_realkind    Integer parameter kind or length of passed reals (=4)
-!   sfcio_dblekind    Integer parameter kind or length of passed longreals (=8)
-!   sfcio_realfill    Real(sfcio_realkind) fill value (=-9999.)
-!   sfcio_dblefill    Real(sfcio_dblekind) fill value (=-9999.)
-!
-! Public Defined Types:
-!   sfcio_head        Surface file header information
-!     clabsfc           Character(sfcio_lhead1) ON85 label
-!     fhour             Real(sfcio_realkind) forecast hour
-!     idate             Integer(sfcio_intkind)(4) initial date
-!                       (hour, month, day, 4-digit year)
-!     latb              Integer(sfcio_intkind) latitudes
-!     lonb              Integer(sfcio_intkind) longitudes
-!     ivs               Integer(sfcio_intkind) version number
-!     lsoil             Integer(sfcio_intkind) soil levels
-!     irealf            Integer(sigio_intkind) floating point flag
-!                       (=1 for 4-byte ieee, =2 for 8-byte ieee)
-!     lpl               Integer(sfcio_intkind)(latb/2) lons per lat
-!     zsoil             Real(sfcio_realkind) soil depths (meter)
-!
-!   sfcio_data        Surface file data fields
-!     tsea              Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       surface temperature in K
-!     smc               Real(sfcio_realkind)(:,:,:) pointer to lonb*latb*lsoil
-!                       soil volumetric water content in fraction
-!     sheleg            Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       snow depth in m
-!     stc               Real(sfcio_realkind)(:,:,:) pointer to lonb*latb*lsoil
-!                       soil temperature in K
-!     tg3               Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       deep soil temperature in K
-!     zorl              Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       roughness in cm
-!     cv                Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       convective cloud cover in fraction
-!     cvb               Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       convective cloud bottom in kpa
-!     cvt               Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       convective cloud top in kpa
-!     alvsf             Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       albedo for visible scattered in fraction
-!     alvwf             Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       albedo for visible beam in fraction
-!     alnsf             Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       albedo for near-IR scattered in fraction
-!     alnwf             Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       albedo for near-IR beam in fraction
-!     slmsk             Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       sea-land-ice mask (0-sea, 1-land, 2-ice)
-!     vfrac             Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       vegetation fraction in fraction
-!     canopy            Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       canopy water in m
-!     f10m              Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       10-meter wind speed over lowest model wind speed
-!     t2m               Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       2-meter temperature in K
-!     q2m               Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       2-meter specific humidity in kg/kg
-!     vtype             Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       vegetation type in integer 1-13
-!     stype             Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       soil type in integer 1-9
-!     facsf             Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       xxx in fraction
-!     facwf             Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       xxx in fraction
-!     uustar            Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       xxx in xxx
-!     ffmm              Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       xxx in xxx
-!     ffhh              Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       xxx in xxx
-!     hice              Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       xxx in xxx
-!     fice              Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       xxx in xxx
-!     tisfc             Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       xxx in xxx
-!     tprcp             Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       xxx in xxx
-!     srflag            Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       xxx in xxx
-!     snwdph            Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       xxx in xxx
-!     slc               Real(sfcio_realkind)(:,:,:) pointer to lonb*latb*lsoil
-!                       xxx in xxx
-!     shdmin            Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       xxx in xxx
-!     shdmax            Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       xxx in xxx
-!     slope             Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       xxx in xxx
-!     snoalb            Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       xxx in xxx
-!     orog              Real(sfcio_realkind)(:,:) pointer to lonb*latb
-!                       orography in m
-!                       
-!   sfcio_dbta        Surface file longreal data fields
-!                       
-! Public Subprograms:
-!   sfcio_sropen      Open surface file for sequential reading
-!     lu                Integer(sfcio_intkind) input logical unit
-!     cfname            Character(*) input filename
-!     iret              Integer(sfcio_intkind) output return code
-!
-!   sfcio_swopen      Open surface file for sequential writing
-!     lu                Integer(sfcio_intkind) input logical unit
-!     cfname            Character(*) input filename
-!     iret              Integer(sfcio_intkind) output return code
-!
-!   sfcio_sclose      Close surface file for sequential I/O
-!     lu                Integer(sfcio_intkind) input logical unit
-!     iret              Integer(sfcio_intkind) output return code
-!
-!   sfcio_srhead      Read header information with sequential I/O
-!     lu                Integer(sfcio_intkind) input logical unit
-!     head              Type(sfcio_head) output header information
-!     iret              Integer(sfcio_intkind) output return code
-!
-!   sfcio_swhead      Write header information with sequential I/O
-!     lu                Integer(sfcio_intkind) input logical unit
-!     head              Type(sfcio_head) input header information
-!     iret              Integer(sfcio_intkind) output return code
-!
-!   sfcio_alhead      Allocate head allocatables
-!     head              Type(sfcio_head) input/output header information
-!     iret              Integer(sfcio_intkind) output return code
-!     latb              Integer(sfcio_intkind) optional latitudes
-!     lsoil             Integer(sfcio_intkind) optional soil levels
-!
-!   sfcio_aldata      Allocate data fields
-!     head              Type(sfcio_head) input header information
-!     data              Type(sfcio_data) output data fields
-!     iret              Integer(sfcio_intkind) output return code
-!
-!   sfcio_axdata      Deallocate data fields
-!     data              Type(sfcio_data) output data fields
-!     iret              Integer(sfcio_intkind) output return code
-!
-!   sfcio_srdata      Read data fields with sequential I/O
-!     lu                Integer(sfcio_intkind) input logical unit
-!     head              Type(sfcio_head) input header information
-!     data              Type(sfcio_data) output data fields
-!     iret              Integer(sfcio_intkind) output return code
-!
-!   sfcio_swdata      Write data fields with sequential I/O
-!     lu                Integer(sfcio_intkind) input logical unit
-!     head              Type(sfcio_head) input header information
-!     data              Type(sfcio_data) input data fields
-!     iret              Integer(sfcio_intkind) output return code
-!
-!   sfcio_srohdc      Open, read header & data and close with sequential I/O
-!     lu                Integer(sfcio_intkind) input logical unit
-!     cfname            Character(*) input filename
-!     head              Type(sfcio_head) output header information
-!     data              Type(sfcio_data) output data fields
-!     iret              Integer(sfcio_intkind) output return code
-!
-!   sfcio_swohdc      Open, write header & data and close with sequential I/O
-!     lu                Integer(sfcio_intkind) input logical unit
-!     cfname            Character(*) input filename
-!     head              Type(sfcio_head) input header information
-!     data              Type(sfcio_data) input data fields
-!     iret              Integer(sfcio_intkind) output return code
-!
-!   sfcio_aldbta      Allocate longreal data fields
-!     head              Type(sfcio_head) input header information
-!     dbta              Type(sfcio_dbta) output longreal data fields
-!     iret              Integer(sfcio_intkind) output return code
-!
-!   sfcio_axdbta      Deallocate longreal data fields
-!     dbta              Type(sfcio_dbta) output longreal data fields
-!     iret              Integer(sfcio_intkind) output return code
-!
-!   sfcio_srdbta      Read longreal data fields with sequential I/O
-!     lu                Integer(sfcio_intkind) input logical unit
-!     head              Type(sfcio_head) input header information
-!     dbta              Type(sfcio_dbta) output longreal data fields
-!     iret              Integer(sfcio_intkind) output return code
-!
-!   sfcio_swdbta      Write longreal data fields with sequential I/O
-!     lu                Integer(sfcio_intkind) input logical unit
-!     head              Type(sfcio_head) input header information
-!     dbta              Type(sfcio_dbta) input longreal data fields
-!     iret              Integer(sfcio_intkind) output return code
-!
-! Remarks:
-!   (1) Here's the supported surface file formats.
-!       For ivs=199802 (read-only):
-!         ON85 label (32 bytes)
-!         Header information record containing
-!           fhour, idate, lonb, latb, ivs (8 4-byte words)
-!         tsea (lonb*latb 4-byte words)
-!         smc (lonb*latb*lsoil 4-byte words)
-!         sheleg (lonb*latb 4-byte words)
-!         stc (lonb*latb*lsoil 4-byte words)
-!         tg3 (lonb*latb 4-byte words)
-!         zorl (lonb*latb 4-byte words)
-!         cv (lonb*latb 4-byte words)
-!         cvb (lonb*latb 4-byte words)
-!         cvt (lonb*latb 4-byte words)
-!         alvsf,alvwf,alnsf,alnwf (lonb*latb*4 4-byte words)
-!         slmsk (lonb*latb 4-byte words)
-!         vfrac (lonb*latb 4-byte words)
-!         canopy (lonb*latb 4-byte words)
-!         f10m (lonb*latb 4-byte words)
-!         vtype (lonb*latb 4-byte words)
-!         stype (lonb*latb 4-byte words)
-!         facsf,facwf (lonb*latb*2 4-byte words)
-!         uustar (lonb*latb 4-byte words)
-!         ffmm (lonb*latb 4-byte words)
-!         ffhh (lonb*latb 4-byte words)
-!       For ivs=200004:
-!         ON85 label (32 bytes)
-!         Header information record containing
-!           fhour, idate, lonb, latb, ivs, lpl (8+latb/2 4-byte words)
-!         tsea (lonb*latb 4-byte words)
-!         smc (lonb*latb*lsoil 4-byte words)
-!         sheleg (lonb*latb 4-byte words)
-!         stc (lonb*latb*lsoil 4-byte words)
-!         tg3 (lonb*latb 4-byte words)
-!         zorl (lonb*latb 4-byte words)
-!         cv (lonb*latb 4-byte words)
-!         cvb (lonb*latb 4-byte words)
-!         cvt (lonb*latb 4-byte words)
-!         alvsf,alvwf,alnsf,alnwf (lonb*latb*4 4-byte words)
-!         slmsk (lonb*latb 4-byte words)
-!         vfrac (lonb*latb 4-byte words)
-!         canopy (lonb*latb 4-byte words)
-!         f10m (lonb*latb 4-byte words)
-!         vtype (lonb*latb 4-byte words)
-!         stype (lonb*latb 4-byte words)
-!         facsf,facwf (lonb*latb*2 4-byte words)
-!         uustar (lonb*latb 4-byte words)
-!         ffmm (lonb*latb 4-byte words)
-!         ffhh (lonb*latb 4-byte words)
-!       For ivs=200412 (read-only):
-!         ON85 label (32 bytes)
-!         Header information record containing
-!           fhour, idate, lonb, latb, ivs, lpl (8+latb/2 4-byte words)
-!         tsea (lonb*latb 4-byte words)
-!         smc (lonb*latb*lsoil 4-byte words)
-!         sheleg (lonb*latb 4-byte words)
-!         stc (lonb*latb*lsoil 4-byte words)
-!         tg3 (lonb*latb 4-byte words)
-!         zorl (lonb*latb 4-byte words)
-!         cv (lonb*latb 4-byte words)
-!         cvb (lonb*latb 4-byte words)
-!         cvt (lonb*latb 4-byte words)
-!         alvsf,alvwf,alnsf,alnwf (lonb*latb*4 4-byte words)
-!         slmsk (lonb*latb 4-byte words)
-!         vfrac (lonb*latb 4-byte words)
-!         canopy (lonb*latb 4-byte words)
-!         f10m (lonb*latb 4-byte words)
-!         vtype (lonb*latb 4-byte words)
-!         stype (lonb*latb 4-byte words)
-!         facsf,facwf (lonb*latb*2 4-byte words)
-!         uustar (lonb*latb 4-byte words)
-!         ffmm (lonb*latb 4-byte words)
-!         ffhh (lonb*latb 4-byte words)
-!         hice (lonb*latb 4-byte words)
-!         fice (lonb*latb 4-byte words)
-!         tisfc (lonb*latb 4-byte words)
-!         tprcp (lonb*latb 4-byte words)
-!         srflag (lonb*latb 4-byte words)
-!         snwdph (lonb*latb 4-byte words)
-!         slc (lonb*latb*lsoil 4-byte words)
-!         shdmin (lonb*latb 4-byte words)
-!         shdmax (lonb*latb 4-byte words)
-!         slope (lonb*latb 4-byte words)
-!         snoalb (lonb*latb 4-byte words)
-!       For ivs=200501:
-!         Label containing
-!           'GFS ','SFC ',ivs,nhead,ndata,reserved(3) (8 4-byte words)
-!         Header records
-!           lhead(nhead),ldata(ndata) (nhead+ndata 4-byte words)
-!           fhour, idate(4), lonb, latb, lsoil  (8 4-byte words)
-!           lpl  (latb/2 4-byte words)
-!           zsoil  (lsoil 4-byte words)
-!         Data records
-!           slmsk (lonb*latb 4-byte words)
-!           orog (lonb*latb 4-byte words)
-!           tsea (lonb*latb 4-byte words)
-!           sheleg (lonb*latb 4-byte words)
-!           tg3 (lonb*latb 4-byte words)
-!           zorl (lonb*latb 4-byte words)
-!           alvsf (lonb*latb 4-byte words)
-!           alvwf (lonb*latb 4-byte words)
-!           alnsf (lonb*latb 4-byte words)
-!           alnwf (lonb*latb 4-byte words)
-!           vfrac (lonb*latb 4-byte words)
-!           canopy (lonb*latb 4-byte words)
-!           f10m (lonb*latb 4-byte words)
-!           vtype (lonb*latb 4-byte words)
-!           stype (lonb*latb 4-byte words)
-!           facsf (lonb*latb 4-byte words)
-!           facwf (lonb*latb 4-byte words)
-!           uustar (lonb*latb 4-byte words)
-!           ffmm (lonb*latb 4-byte words)
-!           ffhh (lonb*latb 4-byte words)
-!           hice (lonb*latb 4-byte words)
-!           fice (lonb*latb 4-byte words)
-!           tprcp (lonb*latb 4-byte words)
-!           srflag (lonb*latb 4-byte words)
-!           snwdph (lonb*latb 4-byte words)
-!           shdmin (lonb*latb 4-byte words)
-!           shdmax (lonb*latb 4-byte words)
-!           slope (lonb*latb 4-byte words)
-!           snoalb (lonb*latb 4-byte words)
-!           lsoil stc (lonb*latb 4-byte words)
-!           lsoil smc (lonb*latb 4-byte words)
-!           lsoil slc (lonb*latb 4-byte words)
-!       For ivs=200509:
-!         Label containing
-!           'GFS ','SFC ',ivs,nhead,ndata,reserved(3) (8 4-byte words)
-!         Header records
-!           lhead(nhead),ldata(ndata) (nhead+ndata 4-byte words)
-!           fhour, idate(4), lonb, latb, lsoil, irealf,
-!             reserved(16)  (25 4-byte words)
-!           lpl  (latb/2 4-byte words)
-!           zsoil  (lsoil 4-byte words)
-!         Data records
-!           slmsk (lonb*latb 4-byte words)
-!           orog (lonb*latb 4-byte words)
-!           tsea (lonb*latb 4-byte words)
-!           sheleg (lonb*latb 4-byte words)
-!           tg3 (lonb*latb 4-byte words)
-!           zorl (lonb*latb 4-byte words)
-!           alvsf (lonb*latb 4-byte words)
-!           alvwf (lonb*latb 4-byte words)
-!           alnsf (lonb*latb 4-byte words)
-!           alnwf (lonb*latb 4-byte words)
-!           vfrac (lonb*latb 4-byte words)
-!           canopy (lonb*latb 4-byte words)
-!           f10m (lonb*latb 4-byte words)
-!           t2m (lonb*latb 4-byte words)
-!           q2m (lonb*latb 4-byte words)
-!           vtype (lonb*latb 4-byte words)
-!           stype (lonb*latb 4-byte words)
-!           facsf (lonb*latb 4-byte words)
-!           facwf (lonb*latb 4-byte words)
-!           uustar (lonb*latb 4-byte words)
-!           ffmm (lonb*latb 4-byte words)
-!           ffhh (lonb*latb 4-byte words)
-!           hice (lonb*latb 4-byte words)
-!           fice (lonb*latb 4-byte words)
-!           tisfc (lonb*latb 4-byte words)
-!           tprcp (lonb*latb 4-byte words)
-!           srflag (lonb*latb 4-byte words)
-!           snwdph (lonb*latb 4-byte words)
-!           shdmin (lonb*latb 4-byte words)
-!           shdmax (lonb*latb 4-byte words)
-!           slope (lonb*latb 4-byte words)
-!           snoalb (lonb*latb 4-byte words)
-!           lsoil stc (lonb*latb 4-byte words)
-!           lsoil smc (lonb*latb 4-byte words)
-!           lsoil slc (lonb*latb 4-byte words)
-!
-!   (2) Possible return codes:
-!          0   Successful call
-!         -1   Open or close I/O error
-!         -2   Header record I/O error or unrecognized version
-!         -3   Allocation or deallocation error
-!         -4   Data record I/O error
-!         -5   Insufficient data dimensions allocated
-!
-! Examples:
-!   (1) Read the entire surface file 'sfcf24' and
-!       print out the northernmost surface temperature at greenwich.
-!
-!     use sfcio_module
-!     type(sfcio_head):: head
-!     type(sfcio_data):: data
-!     call sfcio_srohdc(11,'sfcf24',head,data,iret)
-!     print '(f8.2)',data%tsea(1,1)
-!     end
-!
-! Attributes:
-!   Language: Fortran 90
-!
-!$$$
   implicit none
   private
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

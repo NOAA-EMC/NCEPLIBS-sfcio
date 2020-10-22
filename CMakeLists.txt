@@ -1,9 +1,13 @@
+# This is the main CMake file for NCEPLIBS-ip.
+#
+# Mark Potts, Kyle Gerheiser
 cmake_minimum_required(VERSION 3.15)
 
 file(STRINGS "VERSION" pVersion)
 
 project(sfcio VERSION ${pVersion} LANGUAGES Fortran)
 
+option(ENABLE_DOCS "Enable generation of doxygen-based documentation." OFF)
 option(ENABLE_TESTS "Enable tests" OFF)
 
 if(NOT CMAKE_BUILD_TYPE MATCHES "^(Debug|Release|RelWithDebInfo|MinSizeRel)$")
@@ -27,3 +31,9 @@ if (ENABLE_TESTS)
   enable_testing()
   add_subdirectory(tests)
 endif()
+
+# Determine whether or not to generate documentation.
+if(ENABLE_DOCS)
+  find_package(Doxygen REQUIRED)
+endif()
+add_subdirectory(docs)  
