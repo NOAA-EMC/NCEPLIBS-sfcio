@@ -7,6 +7,8 @@ file(STRINGS "VERSION" pVersion)
 
 project(sfcio VERSION ${pVersion} LANGUAGES Fortran)
 
+include(GNUInstallDirs)
+
 option(ENABLE_DOCS "Enable generation of doxygen-based documentation." OFF)
 option(ENABLE_TESTS "Enable tests" OFF)
 
