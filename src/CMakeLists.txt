@@ -1,4 +1,6 @@
-
+# This is the main CMake file for NCEPLIBS-sfcio src directory.
+#
+# Mark Potts, Kyle Gerheiser
 
 if(CMAKE_Fortran_COMPILER_ID MATCHES "^(Intel)$")
   set(CMAKE_Fortran_FLAGS

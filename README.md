@@ -1,9 +1,16 @@
 ![Status](https://github.com/NOAA-EMC/NCEPLIBS-sp/workflows/Build%20and%20Test/badge.svg)
 
-# SFCIO
+# NCEPLIBS-sfcio
 
-API for surface files I/O. This is part of
-the [NCEPLIBS](https://github.com/NOAA-EMC/NCEPLIBS) project.
+This library provides an API to read the NCEP Spectral model surface
+files. This is part of the
+[NCEPLIBS](https://github.com/NOAA-EMC/NCEPLIBS) project.
+
+The spectral model is on a sunset track at NCEP and is not being
+further developed but is still used for climate forecasts and ensemble
+forecasts. The library was originally part of the GFS source code and
+was extracted to allow development of utilities that read GFS surface
+files.
 
 For full documentation see https://noaa-emc.github.io/NCEPLIBS-sfcio/.
 
