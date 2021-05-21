@@ -8,9 +8,12 @@ files. This is part of the
 
 The spectral model is on a sunset track at NCEP and is not being
 further developed but is still used for climate forecasts and ensemble
-forecasts. The library was originally part of the GFS source code and
-was extracted to allow development of utilities that read GFS surface
-files.
+forecasts. The NCEPLIBS-sfcio library was originally part of the GFS
+source code and was extracted to allow development of utilities that
+read GFS surface files.
+
+This library is used by the
+[UFS_UTILS](https://github.com/NOAA-EMC/UFS_UTILS) project.
 
 For full documentation see https://noaa-emc.github.io/NCEPLIBS-sfcio/.
 
