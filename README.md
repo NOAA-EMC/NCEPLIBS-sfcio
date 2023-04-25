@@ -23,7 +23,7 @@ To submit bug reports, feature requests, or other code-related issues including 
 
 NCEP/EMC Developers
 
-Code manager: [George Vandenberghe](george.vandenberghe@noaa.gov)
+Code manager: [George Vandenberghe](mailto:george.vandenberghe@noaa.gov)
 
 ## Installing
 
