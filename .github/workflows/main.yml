@@ -3,12 +3,19 @@ on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    env:
-      FC: gfortran-11
-      CC: gcc-11
+    runs-on: ubuntu-24.04
+
+    strategy:
+      matrix:
+        gcc-version: [12,14]
 
     steps:
+
+    - name: get-gcc
+      run: |
+        if [ -z $(type -P gcc-${{ matrix.gcc-version }}) ]; then
+          sudo apt install gcc-${{ matrix.gcc-version }}
+        fi
 
     - name: checkout-pfunit
       uses: actions/checkout@v4
@@ -26,6 +33,7 @@ jobs:
     - name: build-pfunit
       if: steps.cache-pfunit.outputs.cache-hit != 'true'
       run: |
+        export CC=gcc-${{ matrix.gcc-version }} ; export FC=gfortran-${{ matrix.gcc-version }}
         cmake -S pfunit -B pfunit/build -DSKIP_MPI=YES -DSKIP_ESMF=YES -DSKIP_FHAMCREST=YES -DCMAKE_INSTALL_PREFIX=~/pfunit
         cmake --build pfunit/build --parallel 2 --verbose
         cmake --install pfunit/build
