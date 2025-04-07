@@ -27,12 +27,12 @@ Code manager: [George Vandenberghe](mailto:george.vandenberghe@noaa.gov)
 
 ## Installing
 
-```
-mkdir build
-cd build
-cmake -DCMAKE_INSTALL_PREFIX=/path/to/install /path/to/NCEPLIBS-sfcio
-make -j2
-make install
+```console
+git clone https://github.com/NOAA-EMC/NCEPLIBS-sfcio # or download a release from https://github.com/NOAA-EMC/NCEPLIBS-sfcio/releases
+cmake -DCMAKE_INSTALL_PREFIX=/path/to/install -S NCEPLIBS-sfcio -B NCEPLIBS-sfcio/build # <add'l CMake options>
+cmake --build NCEPLIBS-sfcio/build --parallel 2
+ctest --test-dir NCEPLIBS-sfcio/build --parallel 2 # <add'l CTest options>
+cmake --install NCEPLIBS-sfcio/build
 ```
 
 ## Disclaimer
