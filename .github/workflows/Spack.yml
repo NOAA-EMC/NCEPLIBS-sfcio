@@ -34,7 +34,7 @@ jobs:
         use-repo-cache: true
         spack-compiler: gcc
         repo-cache-key-suffix: ${{ matrix.os }}-${{ matrix.variants }}-1
-        spack-externals: cmake gmake
+        spack-externals: cmake gmake python perl m4
         use-common-build-cache: false
 
   # This job validates the Spack recipe by making sure each cmake build option is represented
