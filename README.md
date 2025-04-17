@@ -35,6 +35,8 @@ ctest --test-dir NCEPLIBS-sfcio/build --parallel 2 # <add'l CTest options>
 cmake --install NCEPLIBS-sfcio/build
 ```
 
+NCEPLIBS-sfcio is also available through [Spack](https://spack.io) as '[sfcio](https://github.com/spack/spack/tree/develop/var/spack/repos/builtin/packages/sfcio)'.
+
 ## Disclaimer
 
 The United States Department of Commerce (DOC) GitHub project code is
